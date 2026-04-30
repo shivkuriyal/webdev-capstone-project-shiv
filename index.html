@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <h1>My Expense Tracker</h1>
+        <p>Track your daily expenses easily</p>
+    </header>
+
+    <main>
+
+        <!-- Form Section -->
+        <section id="form-section">
+            <form id="expense-form">
+                <input type="text" id="expense-name" placeholder="e.g. Coffee" required>
+                <input type="number" id="expense-amount" placeholder="e.g. 150" required>
+                <select id="expense-category">
+                    <option value="Food">Food</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Bills">Bills</option>
+                    <option value="Other">Other</option>
+                </select>
+                <button type="submit">Add Expense</button>
+            </form>
+        </section>
+
+        <!-- Summary Section -->
+        <section id="summary-section">
+            <h2>Total Expenses</h2>
+            <p id="total-amount">₹0</p>
+        </section>
+
+        <!-- Expense List Section -->
+        <section id="list-section">
+            <h2>Recent Expenses</h2>
+            <ul id="expense-list"></ul>
+        </section>
+
+    </main>
+
+    <!-- Footer Section -->
+    <footer>
+        <p>Made by Shiv</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
