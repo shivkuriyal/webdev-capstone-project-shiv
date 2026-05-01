@@ -3,53 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Expense Tracker</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <!-- Header Section -->
     <header>
-        <h1>My Expense Tracker</h1>
-        <p>Track your daily expenses easily</p>
+        <h1>💰 Your Daily Expense Tracker</h1>
+        <div class="profile">
+            <span class="profile-avatar">S</span>
+            <span>Shiv</span>
+        </div>
     </header>
 
     <main>
 
-        <!-- Form Section -->
-        <section id="form-section">
+        <!-- Balance Overview -->
+        <section class="balance-section">
+            <h2>Net Balance</h2>
+            <p id="total-amount" class="balance">₹0</p>
+            <div class="balance-cards">
+                <div class="income-card">
+                    <p>Income</p>
+                    <h3 id="income-total">₹0</h3>
+                </div>
+                <div class="expense-card">
+                    <p>Expenses</p>
+                    <h3 id="expense-total">₹0</h3>
+                </div>
+            </div>
+        </section>
+
+        <!-- Add Transaction Form -->
+        <section>
+            <h2>Add Transaction</h2>
+            <div class="type-buttons">
+                <button type="button" id="btn-income" class="type-btn active-income">+ Income</button>
+                <button type="button" id="btn-expense" class="type-btn">- Expense</button>
+            </div>
             <form id="expense-form">
-                <input type="text" id="expense-name" placeholder="e.g. Coffee" required>
-                <input type="number" id="expense-amount" placeholder="e.g. 150" required>
-                <select id="expense-category">
-                    <option value="Food">Food</option>
-                    <option value="Travel">Travel</option>
-                    <option value="Shopping">Shopping</option>
-                    <option value="Bills">Bills</option>
-                    <option value="Other">Other</option>
-                </select>
-                <button type="submit">Add Expense</button>
+                <input type="text" id="expense-name" placeholder="Description (e.g. Salary)" required>
+                <div class="form-row">
+                    <input type="number" id="expense-amount" placeholder="Amount ₹" required>
+                    <select id="expense-category">
+                        <option value="Salary">Salary</option>
+                        <option value="Freelance">Freelance</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <button type="submit" id="submit-btn">Add Income</button>
             </form>
         </section>
 
-        <!-- Summary Section -->
-        <section id="summary-section">
-            <h2>Total Expenses</h2>
-            <p id="total-amount">₹0</p>
-        </section>
-
-        <!-- Expense List Section -->
-        <section id="list-section">
-            <h2>Recent Expenses</h2>
+        <!-- Transaction List -->
+        <section>
+            <h2>Recent Transactions</h2>
             <ul id="expense-list"></ul>
         </section>
 
     </main>
-
-    <!-- Footer Section -->
-    <footer>
-        <p>Made by Shiv</p>
-    </footer>
 
     <script src="script.js"></script>
 </body>
