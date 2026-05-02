@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Expense Tracker - Track and manage your daily income and expenses.">
+    <title>Expense Tracker | Home</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ===================== HEADER ===================== -->
+    <header>
+        <div class="header-inner">
+            <div class="brand">
+                <span class="brand-name">My Expense Tracker</span>
+                <span class="brand-tagline">Track every rupee.</span>
+            </div>
+            <nav class="main-nav">
+                <a href="./index.html" class="nav-link">Home</a>
+                <a href="./add-expense.html" class="nav-btn">+ Add Entry</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===================== MAIN CONTENT ===================== -->
+    <div class="container">
+
+        <!-- Page Title -->
+        <h1 class="page-title">Dashboard</h1>
+
+        <!-- ========== NET BALANCE SUMMARY ========== -->
+        <div class="balance-row" id="balance-row">
+            <div class="balance-card balance-income">
+                <p class="balance-label">Total Income</p>
+                <p class="balance-value income-color" id="total-income">₹0.00</p>
+            </div>
+            <div class="balance-card balance-expense">
+                <p class="balance-label">Total Expenses</p>
+                <p class="balance-value expense-color" id="total-expense">₹0.00</p>
+            </div>
+            <div class="balance-card balance-net">
+                <p class="balance-label">Net Balance</p>
+                <p class="balance-value" id="net-balance">₹0.00</p>
+            </div>
+        </div>
+
+        <!-- ========== STAT CARDS — Time Period Breakdown ========== -->
+        <div class="stats-row" id="stats-row">
+            <div class="stat-card">
+                <p class="stat-label">Today</p>
+                <p class="stat-value expense-color" id="stat-today">₹0.00</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">This Week</p>
+                <p class="stat-value expense-color" id="stat-week">₹0.00</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">This Month</p>
+                <p class="stat-value expense-color" id="stat-month">₹0.00</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">This Year</p>
+                <p class="stat-value expense-color" id="stat-year">₹0.00</p>
+            </div>
+        </div>
+
+        <!-- ========== FILTER SECTION ========== -->
+        <div class="filter-section">
+            <label for="type-filter">Type:</label>
+            <select id="type-filter">
+                <option value="All">All</option>
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+            </select>
+
+            <label for="category-filter">Category:</label>
+            <select id="category-filter">
+                <option value="All">All</option>
+                <option value="Food">Food</option>
+                <option value="Transport">Transport</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Health">Health</option>
+                <option value="Salary">Salary</option>
+                <option value="Freelance">Freelance</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <!-- ========== EXPENSE / INCOME CARDS ========== -->
+        <div class="cards-container" id="cards-container">
+            <!-- Cards are dynamically created here -->
+        </div>
+
+        <!-- ========== CHARTS SECTION ========== -->
+        <div class="charts-row">
+            <div class="chart-section">
+                <h2>Spending by Category</h2>
+                <div class="chart-container">
+                    <canvas id="expense-chart"></canvas>
+                </div>
+            </div>
+            <div class="chart-section">
+                <h2>Income vs Expenses</h2>
+                <div class="chart-container">
+                    <canvas id="income-expense-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===================== JAVASCRIPT ===================== -->
+    <script>
+        // ============================================================
+        // localStorage helper functions (replaces Flask backend API)
+        // ============================================================
+
+        // Get all expenses from localStorage
+        function getExpensesFromStorage() {
+            const data = localStorage.getItem("expenses");
+            if (data) {
+                return JSON.parse(data);
+            }
+            return [];
+        }
+
+        // Save all expenses to localStorage
+        function saveExpensesToStorage(expenses) {
+            localStorage.setItem("expenses", JSON.stringify(expenses));
+        }
+
+        // Variables to hold chart instances so we can destroy before re-rendering
+        let chartInstance = null;
+        let incExpChartInstance = null;
+
+        // Store all data globally so filters can work without re-fetching
+        let allExpenses = [];
+
+        // ============================================================
+        // getData() — Load all expenses from localStorage
+        // ============================================================
+        function getData() {
+            // Load from localStorage instead of fetching from backend
+            allExpenses = getExpensesFromStorage();
+            // Calculate stats from ALL data (unfiltered)
+            calculateStats(allExpenses);
+            calculateBalance(allExpenses);
+            // Display cards (initially shows all)
+            main(allExpenses);
+        }
+
+        // ============================================================
+        // main(arr) — Display expense/income cards on the page
+        // ============================================================
+        function main(arr) {
+            // Get the container where cards will go
+            const container = document.getElementById("cards-container");
+
+            // Clear any existing cards
+            container.innerHTML = "";
+
+            // If there are no entries, show a message
+            if (arr.length === 0) {
+                const msg = document.createElement("p");
+                msg.className = "empty-message";
+                msg.innerHTML = "No entries found. Start adding some!";
+                container.appendChild(msg);
+            } else {
+                // Loop through each entry and create a card
+                for (let i = 0; i < arr.length; i++) {
+                    // Create the card div
+                    const card = document.createElement("div");
+                    card.className = "expense-card";
+
+                    // Determine type — default to "expense" if not set
+                    const entryType = arr[i].type || "expense";
+
+                    // Choose amount color class based on type
+                    const amountClass = entryType === "income" ? "amount-income" : "amount-expense";
+
+                    // Choose type badge class
+                    const typeBadgeClass = entryType === "income" ? "type-badge-income" : "type-badge-expense";
+
+                    // Set the inner HTML for the card
+                    card.innerHTML = `
+                        <div class="card-header-row">
+                            <h3>${arr[i].title}</h3>
+                            <span class="type-badge ${typeBadgeClass}">${entryType.toUpperCase()}</span>
+                        </div>
+                        <p class="expense-amount ${amountClass}">${entryType === "income" ? "+" : "-"}₹${Number(arr[i].amount).toFixed(2)}</p>
+                        <span class="expense-category">${arr[i].category}</span>
+                        <p class="card-date">📅 ${arr[i].date}</p>
+                        <div class="card-buttons">
+                            <button class="btn-edit" onclick="handleEdit(${arr[i].id})">Edit</button>
+                            <button class="btn-delete" onclick="handleDeleteExpense(${arr[i].id})">Delete</button>
+                        </div>
+                    `;
+
+                    // Append the card to the container
+                    container.appendChild(card);
+                }
+            }
+
+            // Render the pie chart (only for expenses in the filtered view)
+            renderChart(arr);
+
+            // Render income vs expense doughnut chart
+            renderIncomeExpenseChart(arr);
+        }
+
+        // ============================================================
+        // calculateBalance(arr) — Calculate total income, expenses, net
+        // ============================================================
+        function calculateBalance(arr) {
+            let totalIncome = 0;
+            let totalExpense = 0;
+
+            // Loop through the array and add amounts based on type
+            for (let i = 0; i < arr.length; i++) {
+                const entryType = arr[i].type || "expense";
+                const amt = Number(arr[i].amount);
+
+                if (entryType === "income") {
+                    totalIncome = totalIncome + amt;
+                } else {
+                    totalExpense = totalExpense + amt;
+                }
+            }
+
+            const netBalance = totalIncome - totalExpense;
+
+            // Update the balance cards
+            document.getElementById("total-income").innerHTML = `₹${totalIncome.toFixed(2)}`;
+            document.getElementById("total-expense").innerHTML = `₹${totalExpense.toFixed(2)}`;
+
+            const netEl = document.getElementById("net-balance");
+            netEl.innerHTML = `₹${netBalance.toFixed(2)}`;
+
+            // Color the net balance green if positive, red if negative
+            if (netBalance >= 0) {
+                netEl.className = "balance-value income-color";
+            } else {
+                netEl.className = "balance-value expense-color";
+            }
+        }
+
+        // ============================================================
+        // calculateStats(arr) — Expense totals for today, week, month, year
+        // ============================================================
+        function calculateStats(arr) {
+            // Get today's date info
+            const today = new Date();
+            const todayStr = today.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
+            // Get the start of this week (Monday)
+            const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ...
+            const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - mondayOffset);
+            weekStart.setHours(0, 0, 0, 0);
+
+            // Get this month and year
+            const thisMonth = today.getMonth(); // 0-11
+            const thisYear = today.getFullYear();
+
+            let todayTotal = 0;
+            let weekTotal = 0;
+            let monthTotal = 0;
+            let yearTotal = 0;
+
+            // Loop through all entries — only count EXPENSES for stats
+            for (let i = 0; i < arr.length; i++) {
+                const entryType = arr[i].type || "expense";
+
+                // Only count expenses for the spending stats
+                if (entryType !== "expense") {
+                    continue;
+                }
+
+                const amt = Number(arr[i].amount);
+                const entryDate = new Date(arr[i].date);
+
+                // Today
+                if (arr[i].date === todayStr) {
+                    todayTotal = todayTotal + amt;
+                }
+
+                // This week (entry date >= Monday of this week)
+                if (entryDate >= weekStart) {
+                    weekTotal = weekTotal + amt;
+                }
+
+                // This month
+                if (entryDate.getMonth() === thisMonth && entryDate.getFullYear() === thisYear) {
+                    monthTotal = monthTotal + amt;
+                }
+
+                // This year
+                if (entryDate.getFullYear() === thisYear) {
+                    yearTotal = yearTotal + amt;
+                }
+            }
+
+            // Update the stat cards
+            document.getElementById("stat-today").innerHTML = `₹${todayTotal.toFixed(2)}`;
+            document.getElementById("stat-week").innerHTML = `₹${weekTotal.toFixed(2)}`;
+            document.getElementById("stat-month").innerHTML = `₹${monthTotal.toFixed(2)}`;
+            document.getElementById("stat-year").innerHTML = `₹${yearTotal.toFixed(2)}`;
+        }
+
+        // ============================================================
+        // renderChart(arr) — Pie chart grouped by category (expenses only)
+        // ============================================================
+        function renderChart(arr) {
+            // Group EXPENSES by category and sum their amounts
+            const categoryTotals = {};
+
+            for (let i = 0; i < arr.length; i++) {
+                const entryType = arr[i].type || "expense";
+                if (entryType !== "expense") continue; // Only chart expenses
+
+                const cat = arr[i].category;
+                const amt = Number(arr[i].amount);
+
+                if (categoryTotals[cat]) {
+                    categoryTotals[cat] = categoryTotals[cat] + amt;
+                } else {
+                    categoryTotals[cat] = amt;
+                }
+            }
+
+            // Extract labels (category names) and values (totals)
+            const labels = Object.keys(categoryTotals);
+            const values = Object.values(categoryTotals);
+
+            // Define colors for each slice of the pie chart
+            const colors = ["#1a3c8f", "#dc2626", "#16a34a", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4"];
+
+            // Destroy existing chart before creating a new one
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            // Get the canvas element
+            const ctx = document.getElementById("expense-chart").getContext("2d");
+
+            // Create the Chart.js pie chart
+            chartInstance = new Chart(ctx, {
+                type: "pie",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderColor: "#ffffff",
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: "#2c3e6b",
+                                font: { family: "Inter", size: 13 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        // renderIncomeExpenseChart(arr) — Doughnut chart: Income vs Expenses
+        // ============================================================
+        function renderIncomeExpenseChart(arr) {
+            let totalIncome = 0;
+            let totalExpense = 0;
+
+            for (let i = 0; i < arr.length; i++) {
+                const entryType = arr[i].type || "expense";
+                const amt = Number(arr[i].amount);
+
+                if (entryType === "income") {
+                    totalIncome = totalIncome + amt;
+                } else {
+                    totalExpense = totalExpense + amt;
+                }
+            }
+
+            // Destroy existing chart before creating a new one
+            if (incExpChartInstance) {
+                incExpChartInstance.destroy();
+            }
+
+            const ctx = document.getElementById("income-expense-chart").getContext("2d");
+
+            incExpChartInstance = new Chart(ctx, {
+                type: "doughnut",
+                data: {
+                    labels: ["Income", "Expenses"],
+                    datasets: [{
+                        data: [totalIncome, totalExpense],
+                        backgroundColor: ["#16a34a", "#dc2626"],
+                        borderColor: "#ffffff",
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: "#2c3e6b",
+                                font: { family: "Inter", size: 13 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        // handleDeleteExpense(id) — Delete an entry from localStorage
+        // ============================================================
+        function handleDeleteExpense(id) {
+            // Confirm before deleting
+            const confirmed = confirm("Are you sure you want to delete this entry?");
+            if (!confirmed) return;
+
+            // Load current expenses from localStorage
+            let expenses = getExpensesFromStorage();
+
+            // Filter out the entry with the matching ID
+            expenses = expenses.filter(function (item) {
+                return item.id !== id;
+            });
+
+            // Save back to localStorage
+            saveExpensesToStorage(expenses);
+
+            // Reload the data after deletion
+            getData();
+        }
+
+        // ============================================================
+        // handleEdit(id) — Open the edit page with the entry ID
+        // ============================================================
+        function handleEdit(id) {
+            window.open(`edit-expense.html?id=${id}`, "_self");
+        }
+
+        // ============================================================
+        // applyFilters() — Filter data by type and category
+        // ============================================================
+        function applyFilters() {
+            const selectedType = document.getElementById("type-filter").value;
+            const selectedCategory = document.getElementById("category-filter").value;
+
+            let filtered = allExpenses;
+
+            // Filter by type
+            if (selectedType !== "All") {
+                filtered = filtered.filter(function (item) {
+                    return (item.type || "expense") === selectedType;
+                });
+            }
+
+            // Filter by category
+            if (selectedCategory !== "All") {
+                filtered = filtered.filter(function (item) {
+                    return item.category === selectedCategory;
+                });
+            }
+
+            // Re-render cards with filtered data
+            main(filtered);
+        }
+
+        // ============================================================
+        // Filter Dropdowns — Listen for changes
+        // ============================================================
+        document.getElementById("type-filter").addEventListener("change", applyFilters);
+        document.getElementById("category-filter").addEventListener("change", applyFilters);
+
+        // ============================================================
+        // Load data when the page opens
+        // ============================================================
+        getData();
+    </script>
+
+</body>
+</html>

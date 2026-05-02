@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Add a new expense to your tracker.">
+    <title>Expense Tracker | Add Expense</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-inner">
+            <div class="brand">
+                <span class="brand-name">My Expense Tracker</span>
+                <span class="brand-tagline">Track every rupee.</span>
+            </div>
+            <nav class="main-nav">
+                <a href="./index.html" class="nav-link">Home</a>
+                <a href="./add-expense.html" class="nav-btn">+ Add Entry</a>
+            </nav>
+        </div>
+    </header>
+    <div class="container">
+        <h1 class="page-title">Add New Entry</h1>
+        <div class="form-container">
+            <form id="add-expense-form">
+                <div class="form-group">
+                    <label for="type">Type</label>
+                    <select id="type" required>
+                        <option value="expense">Expense</option>
+                        <option value="income">Income</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" placeholder="e.g. Lunch, Salary" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Amount (₹)</label>
+                    <input type="number" id="amount" step="0.01" placeholder="e.g. 250.00" required>
+                </div>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" required>
+                        <option value="Food">Food</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Health">Health</option>
+                        <option value="Salary">Salary</option>
+                        <option value="Freelance">Freelance</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                <button type="submit" class="btn-submit">Add Entry</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        function getExpensesFromStorage() {
+            const data = localStorage.getItem("expenses");
+            if (data) { return JSON.parse(data); }
+            return [];
+        }
+        function saveExpensesToStorage(expenses) {
+            localStorage.setItem("expenses", JSON.stringify(expenses));
+        }
+        function generateId() {
+            const expenses = getExpensesFromStorage();
+            if (expenses.length === 0) { return 1; }
+            let maxId = 0;
+            for (let i = 0; i < expenses.length; i++) {
+                if (expenses[i].id > maxId) { maxId = expenses[i].id; }
+            }
+            return maxId + 1;
+        }
+        const form = document.getElementById("add-expense-form");
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const type = document.getElementById("type").value;
+            const title = document.getElementById("title").value;
+            const amount = parseFloat(document.getElementById("amount").value);
+            const category = document.getElementById("category").value;
+            const date = document.getElementById("date").value;
+            if (amount <= 0) { alert("Amount must be greater than 0!"); return; }
+            const newExpense = {
+                id: generateId(), type: type, title: title,
+                amount: amount, category: category, date: date
+            };
+            const expenses = getExpensesFromStorage();
+            expenses.push(newExpense);
+            saveExpensesToStorage(expenses);
+            alert("Entry added!");
+            window.location.href = "index.html";
+        });
+    </script>
+</body>
+</html>
