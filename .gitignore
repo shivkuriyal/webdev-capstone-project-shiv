@@ -1,0 +1,14 @@
+# Environment variables
+.env
+backend/.env
+
+# Python Virtual Environment
+venv/
+backend/venv/
+
+# Python caching
+__pycache__/
+*.pyc
+
+# Mac OS specific
+.DS_Store
