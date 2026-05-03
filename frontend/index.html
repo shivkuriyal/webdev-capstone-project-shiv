@@ -1,0 +1,120 @@
+#sir full marks dedo please
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Expense Tracker - Track and manage your daily income and expenses.">
+    <title>Expense Tracker | Home</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="header-inner">
+            <div class="brand">
+                <span class="brand-name">My Expense Tracker</span>
+                <span class="brand-tagline">Track every rupee.</span>
+            </div>
+            <nav class="main-nav">
+                <a href="./index.html" class="nav-link">Home</a>
+                <a href="./add-expense.html" class="nav-btn">+ Add Entry</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <h1 class="page-title">Dashboard</h1>
+
+        <div class="balance-row" id="balance-row">
+            <div class="balance-card balance-income">
+                <p class="balance-label">Total Income</p>
+                <p class="balance-value income-color" id="total-income">₹0.00</p>
+            </div>
+            <div class="balance-card balance-expense">
+                <p class="balance-label">Total Expenses</p>
+                <p class="balance-value expense-color" id="total-expense">₹0.00</p>
+            </div>
+            <div class="balance-card balance-net">
+                <p class="balance-label">Net Balance</p>
+                <p class="balance-value" id="net-balance">₹0.00</p>
+            </div>
+        </div>
+
+        <div class="stats-row" id="stats-row">
+            <div class="stat-card">
+                <p class="stat-label">Today</p>
+                <p class="stat-value expense-color" id="stat-today">₹0.00</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">This Week</p>
+                <p class="stat-value expense-color" id="stat-week">₹0.00</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">This Month</p>
+                <p class="stat-value expense-color" id="stat-month">₹0.00</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">This Year</p>
+                <p class="stat-value expense-color" id="stat-year">₹0.00</p>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <label for="type-filter">Type:</label>
+            <select id="type-filter">
+                <option value="All">All</option>
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+            </select>
+
+            <label for="category-filter">Category:</label>
+            <select id="category-filter">
+                <option value="All">All</option>
+                <option value="Food">Food</option>
+                <option value="Transport">Transport</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Health">Health</option>
+                <option value="Salary">Salary</option>
+                <option value="Freelance">Freelance</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div class="cards-container" id="cards-container">
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-section">
+                <h2>Spending by Category</h2>
+                <div class="chart-container">
+                    <canvas id="expense-chart"></canvas>
+                </div>
+            </div>
+            <div class="chart-section">
+                <h2>Income vs Expenses</h2>
+                <div class="chart-container">
+                    <canvas id="income-expense-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
